@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  FACULTY
+  STUDENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum NotificationType {
+  DEFAULTER
+  INFO
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model User {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  email        String     @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime   @default(now())
+  student      Student?
+  faculty      Faculty?
+  auditLogs    AuditLog[]
+}
+
+model Student {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String         @unique @db.ObjectId
+  rollNo        String         @unique
+  name          String
+  sectionId     String         @db.ObjectId
+  semester      Int
+  photoUrl      String?
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section       Section        @relation(fields: [sectionId], references: [id])
+  attendance    Attendance[]
+  notifications Notification[]
+
+  @@index([sectionId])
+}
+
+model Faculty {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @unique @db.ObjectId
+  name       String
+  department String
+  employeeId String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects   Subject[]
+}
+
+model Section {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  batchYear  Int
+  department String
+  students   Student[]
+  subjects   Subject[]
+}
+
+model Subject {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  code       String
+  semester   Int
+  facultyId  String       @db.ObjectId
+  sectionId  String       @db.ObjectId
+  faculty    Faculty      @relation(fields: [facultyId], references: [id])
+  section    Section      @relation(fields: [sectionId], references: [id])
+  attendance Attendance[]
+
+  @@unique([code, sectionId])
+  @@index([facultyId])
+  @@index([sectionId])
+}
+
+model Attendance {
+  id          String                 @id @default(auto()) @map("_id") @db.ObjectId
+  studentId   String                 @db.ObjectId
+  subjectId   String                 @db.ObjectId
+  date        DateTime
+  status      AttendanceStatus
+  markedBy    String                 @db.ObjectId
+  createdAt   DateTime               @default(now())
+  student     Student                @relation(fields: [studentId], references: [id])
+  subject     Subject                @relation(fields: [subjectId], references: [id])
+  corrections AttendanceCorrection[]
+
+  @@unique([studentId, subjectId, date])
+  @@index([studentId])
+  @@index([subjectId])
+  @@index([date])
+}
+
+model AttendanceCorrection {
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
+  attendanceId String           @db.ObjectId
+  oldStatus    AttendanceStatus
+  newStatus    AttendanceStatus
+  reason       String
+  correctedBy  String           @db.ObjectId
+  correctedAt  DateTime         @default(now())
+  attendance   Attendance       @relation(fields: [attendanceId], references: [id])
+}
+
+model Notification {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String         @db.ObjectId
+  type           NotificationType
+  message        String
+  sentAt         DateTime?
+  deliveryStatus DeliveryStatus @default(PENDING)
+  student        Student        @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+}
+
+model AuditLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?  @db.ObjectId
+  action     String
+  entity     String
+  entityId   String?
+  beforeData Json?
+  afterData  Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model AppSetting {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
