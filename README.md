@@ -1,3 +1,30 @@
+## DecodeLabs Task Mapping
+
+This repository contains a complete full-stack Attendance Management System built as part of the DecodeLabs Full Stack Development tasks.
+
+### Task 1 - Responsive Frontend Interface
+- React + Vite frontend
+- Responsive UI using Tailwind CSS
+- Role-based dashboards for Admin, Faculty, and Student
+- Forms, tables, reports, and clean user interface
+
+### Task 2 - Backend API Development
+- Node.js and Express.js backend
+- REST API endpoints for authentication, students, faculty, sections, subjects, attendance, reports, and notifications
+- Request handling, validation, and error responses
+
+### Task 3 - Database Integration
+- MongoDB database integrated using Prisma
+- CRUD operations for students, faculty, sections, subjects, attendance, reports, and notifications
+- Schema design with relations and unique constraints
+
+### Task 4 - Frontend & Backend Integration
+- React frontend connected with Express backend APIs
+- Dynamic data rendering from database
+- JWT-based authentication flow
+- Full attendance management workflow from UI to database
+
+
 # AttendEase
 
 AttendEase is a production-ready MVP for college attendance management with Admin, Faculty, and Student roles.
